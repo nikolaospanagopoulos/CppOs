@@ -76,8 +76,10 @@ void Terminal::terminal_putchar(char c) {
   terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
   if (++terminal_column == VGA_WIDTH) {
     terminal_column = 0;
-    if (++terminal_row == VGA_HEIGHT)
-      terminal_row = 0;
+    if (++terminal_row == VGA_HEIGHT) {
+      terminal_row--;
+      scrollUp();
+    }
   }
 }
 
@@ -89,12 +91,29 @@ void Terminal::terminal_write(const char *data, size_t size) {
 void Terminal::terminal_writestring(const char *data) {
   terminal_write(data, strlen(data));
 }
+void Terminal::scrollUp() {
+  // Move all rows up by one row and clear the last row
+  for (size_t y = 1; y < VGA_HEIGHT; y++) {
+    for (size_t x = 0; x < VGA_WIDTH; x++) {
+      const size_t dest_index = (y - 1) * VGA_WIDTH + x;
+      const size_t src_index = y * VGA_WIDTH + x;
+      terminal_buffer[dest_index] = terminal_buffer[src_index];
+    }
+  }
+
+  // Clear the last row
+  size_t last_row_index = (VGA_HEIGHT - 1) * VGA_WIDTH;
+  for (size_t x = 0; x < VGA_WIDTH; x++) {
+    terminal_buffer[last_row_index + x] = vga_entry(' ', terminal_color);
+  }
+}
+
 extern "C" {
 void kernel_main(void) {
   /* Initialize terminal interface */
   Terminal terminal;
 
   /* Newline support is left as an exercise. */
-  terminal.terminal_writestring("Hello, kernel World!\n");
+  terminal.terminal_writestring("Hello, kernel World!");
 }
 }
