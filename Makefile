@@ -13,3 +13,4 @@ FILES = ./build/boot.o ./build/kernel.o
 clean:
 	rm -rf ./bin/*
 	rm -rf ./build/*
+	rm -rf ./isodir/*
