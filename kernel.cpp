@@ -114,6 +114,6 @@ void kernel_main(void) {
   Terminal terminal;
 
   /* Newline support is left as an exercise. */
-  terminal.terminal_writestring("Hello, kernel World!");
+  terminal.terminal_writestring("Hello, kernel World!\nNew line");
 }
 }
