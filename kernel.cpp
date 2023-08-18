@@ -1,4 +1,5 @@
 
+#include "pageFrameAllocator.hpp"
 extern "C" {
 #include "kernel.hpp"
 }
@@ -113,7 +114,8 @@ void kernel_main(void) {
   /* Initialize terminal interface */
   Terminal terminal;
 
-  /* Newline support is left as an exercise. */
+  initFrameAllocator();
+
   terminal.terminal_writestring("Hello, kernel World!\nNew line");
 }
 }
