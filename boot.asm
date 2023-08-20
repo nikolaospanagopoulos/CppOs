@@ -32,6 +32,33 @@ align 4
 ; System V ABI standard and de-facto extensions. The compiler will assume the
 ; stack is properly aligned and failure to align the stack will result in
 ; undefined behavior.
+section .data
+hello db "Hello, Multiboot World!", 0
+gdt_start:              ; Define a label at the start of the GDT
+    dd 0                ; Null segment descriptor (required)
+    dd 0
+
+gdt_code:               ; Code segment descriptor
+    dw 0xFFFF           ; Limit low (16 bits of segment limit)
+    dw 0                ; Base low (16 bits of base address)
+    db 0                ; Base middle
+    db 10011010b        ; Access byte (Present, Ring 0, Code, Executable)
+    db 11001111b        ; Granularity byte (4KB granularity, 32-bit mode)
+    db 0                ; Base high
+
+gdt_data:               ; Data segment descriptor
+    dw 0xFFFF           ; Limit low (16 bits of segment limit)
+    dw 0                ; Base low (16 bits of base address)
+    db 0                ; Base middle
+    db 10010010b        ; Access byte (Present, Ring 0, Data, Read/Write)
+    db 11001111b        ; Granularity byte (4KB granularity, 32-bit mode)
+    db 0                ; Base high
+
+gdt_end:                ; Define a label at the end of the GDT
+
+gdt_descriptor:
+    dw gdt_end - gdt_start - 1 ; Size of GDT - 1
+    dd gdt_start            ; Address of the GDT
 section .bss
 align 16
 stack_bottom:
@@ -43,6 +70,8 @@ stack_top:
 ; doesn't make sense to return from this function as the bootloader is gone.
 ; Declare _start as a function symbol with the given symbol size.
 section .text
+
+
 global _start:function (_start.end - _start)
 _start:
 	; The bootloader has loaded us into 32-bit protected mode on a x86
@@ -60,36 +89,26 @@ _start:
 	; stack (as it grows downwards on x86 systems). This is necessarily done
 	; in assembly as languages such as C cannot function without a stack.
 	mov esp, stack_top
- 
-	; This is a good place to initialize crucial processor state before the
-	; high-level kernel is entered. It's best to minimize the early
-	; environment where crucial features are offline. Note that the
-	; processor is not fully initialized yet: Features such as floating
-	; point instructions and instruction set extensions are not initialized
-	; yet. The GDT should be loaded here. Paging should be enabled here.
-	; C++ features such as global constructors and exceptions will require
-	; runtime support to work as well.
- 
-	; Enter the high-level kernel. The ABI requires the stack is 16-byte
-	; aligned at the time of the call instruction (which afterwards pushes
-	; the return pointer of size 4 bytes). The stack was originally 16-byte
-	; aligned above and we've since pushed a multiple of 16 bytes to the
-	; stack since (pushed 0 bytes so far) and the alignment is thus
-	; preserved and the call is well defined.
-        ; note, that if you are building on Windows, C functions may have "_" prefix in assembly: _kernel_main
+	lgdt [gdt_descriptor]
+	mov eax, cr0
+    or eax, 0x1
+    mov cr0, eax
+	  ; Enable protected mode
+    mov eax, cr0
+    or eax, 0x1
+    mov cr0, eax
+
+    ; Load segment selectors for code and data segments
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
 	extern kernel_main
 	call kernel_main
  
-	; If the system has nothing more to do, put the computer into an
-	; infinite loop. To do that:
-	; 1) Disable interrupts with cli (clear interrupt enable in eflags).
-	;    They are already disabled by the bootloader, so this is not needed.
-	;    Mind that you might later enable interrupts and return from
-	;    kernel_main (which is sort of nonsensical to do).
-	; 2) Wait for the next interrupt to arrive with hlt (halt instruction).
-	;    Since they are disabled, this will lock up the computer.
-	; 3) Jump to the hlt instruction if it ever wakes up due to a
-	;    non-maskable interrupt occurring or due to system management mode.
 	cli
 .hang:	hlt
 	jmp .hang
