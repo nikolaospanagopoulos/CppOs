@@ -32,6 +32,10 @@ align 4
 ; System V ABI standard and de-facto extensions. The compiler will assume the
 ; stack is properly aligned and failure to align the stack will result in
 ; undefined behavior.
+VGA_TEXT_MEM_BASE equ 0xb8000
+TEXT_ATTR         equ 0x4f
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start
 section .data
 hello db "Hello, Multiboot World!", 0
 gdt_start:              ; Define a label at the start of the GDT
@@ -71,6 +75,29 @@ stack_top:
 ; Declare _start as a function symbol with the given symbol size.
 section .text
 
+print_message:
+    ; Clear the screen
+    mov edi, VGA_TEXT_MEM_BASE
+    mov eax, TEXT_ATTR | (' ' << 8)
+    mov ecx, 80 * 25
+    rep stosd
+
+    ; Print a new message
+    mov edi, VGA_TEXT_MEM_BASE + (80 * 10 + 20) * 2 ; Adjust row and column
+    mov esi, hello
+    mov ecx, 0
+    .print_loop:
+        mov al, byte [esi + ecx]
+        test al, al
+        jz .print_done
+        mov ah, TEXT_ATTR
+        mov [edi], ax
+        add edi, 2
+        inc ecx
+        jmp .print_loop
+    .print_done:
+    ret
+
 
 global _start:function (_start.end - _start)
 _start:
@@ -88,6 +115,7 @@ _start:
 	; To set up a stack, we set the esp register to point to the top of our
 	; stack (as it grows downwards on x86 systems). This is necessarily done
 	; in assembly as languages such as C cannot function without a stack.
+	cli
 	mov esp, stack_top
 	lgdt [gdt_descriptor]
 	mov eax, cr0
@@ -97,17 +125,25 @@ _start:
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
-
+	jmp CODE_SEG:.init_pm
     ; Load segment selectors for code and data segments
+
+
+.init_pm:
     mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
+	mov ebp, 0x90000
+    mov esp, ebp
 
-	extern kernel_main
-	call kernel_main
+
+
+extern kernel_main
+call kernel_main
+ 
  
 	cli
 .hang:	hlt
