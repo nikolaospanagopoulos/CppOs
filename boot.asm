@@ -98,7 +98,7 @@ print_message:
     .print_done:
     ret
 
-
+extern init_pm
 global _start:function (_start.end - _start)
 _start:
 	; The bootloader has loaded us into 32-bit protected mode on a x86
@@ -125,30 +125,9 @@ _start:
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
-	jmp CODE_SEG:.init_pm
+	jmp CODE_SEG:init_pm
     ; Load segment selectors for code and data segments
-
-
-.init_pm:
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-	mov ebp, 0x90000
-    mov esp, ebp
-	in al, 0x92
-    or al, 2
-    out 0x92, al
-
-
-
-extern kernel_main
-call kernel_main
  
  
-	cli
-.hang:	hlt
-	jmp .hang
 .end:
+    jmp $

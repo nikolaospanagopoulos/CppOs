@@ -1,6 +1,7 @@
 
 #include "pageFrameAllocator.hpp"
 extern "C" {
+#include "idt.hpp"
 #include "kernel.hpp"
 }
 #if defined(__linux__)
@@ -117,5 +118,7 @@ void kernel_main(void) {
   initFrameAllocator();
 
   terminal.terminal_writestring("Hello, kernel World!\nNew line");
+  init(&terminal);
 }
+
 }
