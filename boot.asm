@@ -138,6 +138,9 @@ _start:
     mov ss, ax
 	mov ebp, 0x90000
     mov esp, ebp
+	in al, 0x92
+    or al, 2
+    out 0x92, al
 
 
 
