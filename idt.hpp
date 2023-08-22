@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kernel.hpp"
+#include "Terminal.hpp"
 #include <stdint.h>
 class IdtDescriptor {
 public:
@@ -22,4 +23,5 @@ public:
   uint32_t base;  // base address of the start of the idt
 
 } __attribute__((packed));
-void init(Terminal*ter);
+
+void initIdt();

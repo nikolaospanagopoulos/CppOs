@@ -1,9 +1,8 @@
-extern "C"{
+extern "C" {
 #include "idt.hpp"
 #include "Memory.hpp"
 #include "kernel.hpp"
 }
-Terminal *ter;
 extern "C" void idtLoad(void *ptr);
 
 IdtDescriptor idtDescriptors[512];
@@ -17,13 +16,9 @@ IdtDescriptor::IdtDescriptor(uint16_t offset1, uint16_t selector, uint8_t zero,
     : offset1(offset1), selector(selector), zero(zero), typeAttr(typeAttr),
       offset2(offset2) {}
 
+void idtZero() { print("devide by zero error"); }
 
-
-void idtZero() {
-  ter->terminal_writestring("devide by zero error");
-}
-
- void(*idtZeroPtr)() = &idtZero;
+void (*idtZeroPtr)() = &idtZero;
 void IdtDescriptor::setDescriptor(uint16_t off1, uint16_t selec, uint8_t zer,
                                   uint8_t typeAtt, uint16_t off2) {
   offset1 = off1;
@@ -39,11 +34,10 @@ void idtSet(int interruptNo, void *address) {
                       (uint32_t)address >> 16);
 }
 
-void init(Terminal *terminal) {
-  ter = terminal;
+void initIdt() {
   Memory::memset(idtDescriptors, 0, sizeof(idtDescriptors));
   idtrDescriptor.limit = sizeof(idtDescriptors) - 1;
   idtrDescriptor.base = (uint32_t)idtDescriptors;
-  idtSet(0, (void*)idtZero);
+  idtSet(0, (void *)idtZero);
   idtLoad(&idtrDescriptor);
 }

@@ -1,4 +1,4 @@
-FILES = ./build/boot.o ./build/kernel.o ./build/pageFrameAllocator.o ./build/kernel.asm.o ./build/idt.asm.o ./build/idt.o ./build/memory.o
+FILES = ./build/boot.o ./build/kernel.o ./build/pageFrameAllocator.o ./build/kernel.asm.o ./build/idt.asm.o ./build/idt.o ./build/memory.o ./build/string.o ./build/terminal.o
 
 ./bin/os.bin: $(FILES)
 	i686-elf-g++ -T linker.ld -o ./bin/os.bin -ffreestanding -O2 -nostdlib $(FILES)
@@ -14,6 +14,10 @@ FILES = ./build/boot.o ./build/kernel.o ./build/pageFrameAllocator.o ./build/ker
 	nasm -felf32 idt.asm -o ./build/idt.asm.o
 ./build/kernel.o:
 	i686-elf-g++ -c kernel.cpp -o ./build/kernel.o -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti  
+./build/terminal.o:
+	i686-elf-g++ -c Terminal.cpp -o ./build/terminal.o -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti 
+./build/string.o:
+	i686-elf-g++ -c string.cpp -o ./build/string.o -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti  
 ./build/memory.o:
 	i686-elf-g++ -c Memory.cpp -o ./build/memory.o -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti  
 ./build/idt.o:
