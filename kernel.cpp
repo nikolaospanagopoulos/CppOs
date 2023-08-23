@@ -1,10 +1,12 @@
 
-#include "pageFrameAllocator.hpp"
 extern "C" {
+#include "kernel.hpp"
+#include "Heap.hpp"
 #include "String.hpp"
 #include "Terminal.hpp"
 #include "idt.hpp"
-#include "kernel.hpp"
+#include "io.hpp"
+#include "pageFrameAllocator.hpp"
 }
 #if defined(__linux__)
 #error                                                                         \
@@ -16,22 +18,20 @@ extern "C" {
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
 
-Terminal *terminal = nullptr;
+Terminal *terminal;
 
+void printDebug(const char *debugMessage) {
+  for (size_t i{}; i < String::strlen(debugMessage); i++) {
+    outb(0x3F8, debugMessage[i]);
+  }
+}
 void print(const char *message) { terminal->terminal_writestring(message); }
-
 void initializeTerminal() { *terminal = Terminal{}; }
 extern "C" {
 void kernel_main(void) {
-  /* Initialize terminal interface */
+
   initializeTerminal();
-  print("1. Entering protected mode\n");
-  print("2. Terminal initialized\n");
-
   initFrameAllocator();
-  print("3. Frame allocator initialized\n");
-
   initIdt();
-  print("4. Interrupts enabled\n");
 }
 }

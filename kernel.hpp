@@ -5,3 +5,4 @@
 
 
 void  print(const char *message);
+void printDebug(const char *debugMessage);

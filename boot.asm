@@ -75,29 +75,6 @@ stack_top:
 ; Declare _start as a function symbol with the given symbol size.
 section .text
 
-print_message:
-    ; Clear the screen
-    mov edi, VGA_TEXT_MEM_BASE
-    mov eax, TEXT_ATTR | (' ' << 8)
-    mov ecx, 80 * 25
-    rep stosd
-
-    ; Print a new message
-    mov edi, VGA_TEXT_MEM_BASE + (80 * 10 + 20) * 2 ; Adjust row and column
-    mov esi, hello
-    mov ecx, 0
-    .print_loop:
-        mov al, byte [esi + ecx]
-        test al, al
-        jz .print_done
-        mov ah, TEXT_ATTR
-        mov [edi], ax
-        add edi, 2
-        inc ecx
-        jmp .print_loop
-    .print_done:
-    ret
-
 extern init_pm
 global _start:function (_start.end - _start)
 _start:
@@ -130,4 +107,3 @@ _start:
  
  
 .end:
-    jmp $
